@@ -8,6 +8,7 @@ let gameState = {
     difficulty: 'easy',
     mapType: 'standard',
     cityType: 'capitals',
+    language: 'english',
     availableCities: [],
     usedCityIndices: [],
     currentCity: null,
@@ -141,6 +142,7 @@ function startGame() {
     gameState.difficulty = document.getElementById('difficulty-select').value;
     gameState.mapType = document.getElementById('map-type-select').value;
     gameState.cityType = document.getElementById('city-type-select').value;
+    gameState.language = document.getElementById('language-select').value;
     gameState.totalRounds = parseInt(document.getElementById('rounds-input').value);
     gameState.currentRound = 1;
     gameState.currentPlayerIndex = 0;
@@ -151,8 +153,8 @@ function startGame() {
         player.roundDistances = [];
     });
     
-    // Get cities for the selected continent
-    gameState.availableCities = getCitiesForGame(gameState.continent, gameState.cityType);
+    // Get cities for the selected continent with language setting
+    gameState.availableCities = getCitiesForGame(gameState.continent, gameState.cityType, gameState.language);
     
     if (gameState.availableCities.length === 0) {
         alert('No cities available for this continent!');
@@ -283,7 +285,7 @@ function startTurn() {
     // Update UI
     const currentPlayer = gameState.players[gameState.currentPlayerIndex];
     document.getElementById('current-player').textContent = `${currentPlayer.name}'s Turn`;
-    document.querySelector('.city-name').textContent = gameState.currentCity.name;
+    document.querySelector('.city-name').textContent = gameState.currentCity.displayName;
     document.getElementById('current-round').textContent = gameState.currentRound;
     document.getElementById('total-rounds').textContent = gameState.totalRounds;
     
