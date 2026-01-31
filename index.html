@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Explorer - Geography Game</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen active">
+            <h1 class="game-title">City Explorer</h1>
+            <p class="subtitle">Test Your Geography Knowledge!</p>
+            <div class="player-setup">
+                <h2>Add Players (1-4)</h2>
+                <div id="player-inputs">
+                    <div class="player-input-group">
+                        <input type="text" class="player-name-input" placeholder="Player 1 Name" maxlength="20">
+                        <button class="remove-player-btn" style="display: none;">Remove</button>
+                    </div>
+                </div>
+                <button id="add-player-btn" class="btn btn-secondary">Add Player</button>
+                <p class="player-count">Players: <span id="player-count">1</span>/4</p>
+            </div>
+            <button id="start-setup-btn" class="btn btn-primary">Next</button>
+        </div>
+
+        <!-- Game Setup Screen -->
+        <div id="setup-screen" class="screen">
+            <h1 class="game-title">Game Settings</h1>
+            
+            <div class="settings-grid">
+                <div class="setting-group">
+                    <h3>Select Continent</h3>
+                    <select id="continent-select" class="select-input">
+                        <option value="africa">Africa</option>
+                        <option value="antarctica">Antarctica</option>
+                        <option value="asia">Asia</option>
+                        <option value="europe" selected>Europe</option>
+                        <option value="north-america">North America</option>
+                        <option value="south-america">South America</option>
+                        <option value="oceania">Oceania</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Difficulty Level</h3>
+                    <select id="difficulty-select" class="select-input">
+                        <option value="easy" selected>Easy - All details shown except city names</option>
+                        <option value="medium">Medium - No country/state names</option>
+                        <option value="hard">Hard - Only geographical features</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Map Type</h3>
+                    <select id="map-type-select" class="select-input">
+                        <option value="standard" selected>Standard Map</option>
+                        <option value="satellite">Satellite View</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <h3>City Types</h3>
+                    <select id="city-type-select" class="select-input">
+                        <option value="capitals" selected>Only Capital Cities</option>
+                        <option value="all">Capitals & Major Cities</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Number of Rounds</h3>
+                    <input type="number" id="rounds-input" class="number-input" min="1" max="20" value="5">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="back-to-players-btn" class="btn btn-secondary">Back</button>
+                <button id="start-game-btn" class="btn btn-primary">Start Game!</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="game-info">
+                    <h2 id="current-player">Player's Turn</h2>
+                    <p id="city-to-find">Find: <span class="city-name"></span></p>
+                    <p id="round-info">Round <span id="current-round">1</span> of <span id="total-rounds">5</span></p>
+                </div>
+                <button id="toggle-scoreboard-btn" class="btn btn-secondary">Show Scoreboard</button>
+            </div>
+
+            <div id="map-container">
+                <div id="map"></div>
+                <div id="guess-result" class="guess-result hidden">
+                    <h3>Result</h3>
+                    <p class="distance-text">Distance: <span id="distance-value">0</span> km</p>
+                    <button id="next-turn-btn" class="btn btn-primary">Next Turn</button>
+                </div>
+            </div>
+
+            <div id="scoreboard" class="scoreboard hidden">
+                <h3>Scoreboard</h3>
+                <table id="score-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Total Distance (km)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="score-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Winner Screen -->
+        <div id="winner-screen" class="screen">
+            <div class="winner-container">
+                <h1 class="winner-title">Game Over!</h1>
+                <div id="confetti-container"></div>
+                <div id="winner-podium">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div class="final-scores">
+                    <h3>Final Scores</h3>
+                    <table id="final-score-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Total Distance (km)</th>
+                                <th>Average Distance (km)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="final-score-body">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="button-group">
+                    <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+                    <button id="new-players-btn" class="btn btn-secondary">New Players</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="cities-data.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
