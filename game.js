@@ -188,7 +188,7 @@ function initializeGameScreen() {
     tileLayer.addTo(gameState.map);
     
     // Add country borders and labels for medium difficulty
-    if (gameState.difficulty === 'medium' && gameState.mapType === 'standard') {
+    if (gameState.difficulty === 'medium') {
         addCountryBordersAndLabels();
     }
     
@@ -258,6 +258,10 @@ function addCountryBordersAndLabels() {
         gameState.map.removeLayer(gameState.countryLabelsLayer);
     }
     
+    // Determine border color based on map type
+    const borderColor = gameState.mapType === 'satellite' ? '#ff3333' : '#666';
+    const borderOpacity = gameState.mapType === 'satellite' ? 0.8 : 0.6;
+    
     // Fetch GeoJSON data for countries
     fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
         .then(response => response.json())
@@ -265,9 +269,9 @@ function addCountryBordersAndLabels() {
             // Add country borders
             gameState.countryBordersLayer = L.geoJSON(data, {
                 style: {
-                    color: '#666',
+                    color: borderColor,
                     weight: 2,
-                    opacity: 0.6,
+                    opacity: borderOpacity,
                     fillOpacity: 0
                 }
             }).addTo(gameState.map);
@@ -300,9 +304,10 @@ function addCountryBordersAndLabels() {
                 
                 if (centroid) {
                     // Create a custom div icon for the label
+                    const labelClass = gameState.mapType === 'satellite' ? 'country-label-satellite' : 'country-label';
                     const label = L.marker([centroid[1], centroid[0]], {
                         icon: L.divIcon({
-                            className: 'country-label',
+                            className: labelClass,
                             html: `<span>${countryName}</span>`,
                             iconSize: null
                         })

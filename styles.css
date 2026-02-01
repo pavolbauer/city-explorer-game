@@ -535,6 +535,30 @@ body {
     pointer-events: none;
 }
 
+/* Country labels for satellite maps */
+.country-label-satellite {
+    background: transparent;
+    border: none;
+    text-align: center;
+}
+
+.country-label-satellite span {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ff3333;
+    text-shadow: 
+        -1px -1px 0 #000,  
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        0 0 3px #000,
+        0 0 5px #000,
+        0 0 8px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
 /* Map markers */
 .guess-marker,
 .city-marker {
