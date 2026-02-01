@@ -276,7 +276,7 @@ function addCountryBordersAndLabels() {
             gameState.countryLabelsLayer = L.layerGroup();
             
             data.features.forEach(feature => {
-                const countryName = feature.properties.ADMIN || feature.properties.NAME;
+                const countryName = feature.properties.name;
                 
                 // Calculate centroid of the country
                 let centroid;
