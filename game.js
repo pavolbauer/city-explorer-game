@@ -197,54 +197,52 @@ function initializeGameScreen() {
 }
 
 function getMapTileLayer() {
-    let tileUrl, options;
+    let layers = [];
     
     if (gameState.mapType === 'satellite') {
         // Satellite imagery - no labels
-        if (gameState.difficulty === 'hard' || gameState.difficulty === 'medium') {
-            // Pure satellite without any labels
-            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-            options = {
-                attribution: 'Tiles &copy; Esri',
-                maxZoom: 18
-            };
-        } else {
-            // Satellite with some reference labels for easy mode
-            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-            options = {
-                attribution: 'Tiles &copy; Esri',
-                maxZoom: 18
-            };
-        }
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 18
+        });
+        layers.push(satelliteLayer);
     } else {
         // Standard map based on difficulty
         if (gameState.difficulty === 'hard') {
-            // Terrain only, absolutely no labels - use natural earth tiles
-            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}';
-            options = {
-                attribution: 'Tiles &copy; Esri &mdash; National Geographic',
-                maxZoom: 16,
-                opacity: 1
-            };
+            // Hard: Only terrain and water, no borders or labels
+            const hardLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 8
+            });
+            layers.push(hardLayer);
         } else if (gameState.difficulty === 'medium') {
-            // Show geography but minimal labels - use terrain without city labels
-            tileUrl = 'https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg';
-            options = {
-                attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>',
-                subdomains: 'abcd',
-                maxZoom: 18
-            };
+            // Medium: Base terrain + country borders overlay (no cities)
+            // First: terrain base
+            const terrainLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 13
+            });
+            layers.push(terrainLayer);
+            
+            // Second: Add boundaries overlay (countries only, minimal city labels)
+            const boundaryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places_Alternate/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '',
+                maxZoom: 13,
+                opacity: 0.8
+            });
+            layers.push(boundaryLayer);
         } else {
             // Easy - full detailed map with all labels
-            tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-            options = {
+            const easyLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors',
                 maxZoom: 19
-            };
+            });
+            layers.push(easyLayer);
         }
     }
     
-    return L.tileLayer(tileUrl, options);
+    // Return layer group if multiple layers, otherwise single layer
+    return layers.length > 1 ? L.layerGroup(layers) : layers[0];
 }
 
 function getContinentBounds(continent) {
