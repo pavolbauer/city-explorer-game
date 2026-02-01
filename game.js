@@ -216,21 +216,25 @@ function getMapTileLayer() {
             });
             layers.push(hardLayer);
         } else if (gameState.difficulty === 'medium') {
-            // Medium: Base terrain + country borders overlay (no cities)
-            // First: terrain base
-            const terrainLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Tiles &copy; Esri',
-                maxZoom: 13
+            // Medium: Terrain with country borders only
+            // Use CartoDB Positron which has cleaner, simpler labeling
+            const mediumLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors, &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 18
             });
-            layers.push(terrainLayer);
+            layers.push(mediumLayer);
             
-            // Second: Add boundaries overlay (countries only, minimal city labels)
-            const boundaryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places_Alternate/MapServer/tile/{z}/{y}/{x}', {
+            // Add only country labels (appears mostly at lower zoom levels)
+            const countryLabelsOnly = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
                 attribution: '',
-                maxZoom: 13,
-                opacity: 0.8
+                subdomains: 'abcd',
+                maxZoom: 18,
+                minZoom: 3,  // Only show at zoom level 3-6 to avoid city labels
+                maxNativeZoom: 6,  // Don't scale up beyond zoom 6
+                className: 'medium-labels'
             });
-            layers.push(boundaryLayer);
+            layers.push(countryLabelsOnly);
         } else {
             // Easy - full detailed map with all labels
             const easyLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

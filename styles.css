@@ -512,6 +512,11 @@ body {
     }
 }
 
+/* Medium difficulty - hide small text labels (cities) but keep large ones (countries) */
+.medium-labels {
+    filter: contrast(2) brightness(1.2);
+}
+
 /* Map markers */
 .guess-marker,
 .city-marker {
