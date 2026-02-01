@@ -48,9 +48,9 @@
                 <div class="setting-group">
                     <h3>Difficulty Level</h3>
                     <select id="difficulty-select" class="select-input">
-                        <option value="easy" selected>Easy - All details shown except city names</option>
-                        <option value="medium">Medium - No country/state names</option>
-                        <option value="hard">Hard - Only geographical features</option>
+                        <option value="easy" selected>Easy - Full map with all labels</option>
+                        <option value="medium">Medium - Terrain with minimal labels</option>
+                        <option value="hard">Hard - Geographic features only</option>
                     </select>
                 </div>
 
@@ -66,6 +66,7 @@
                     <h3>City Types</h3>
                     <select id="city-type-select" class="select-input">
                         <option value="capitals" selected>Only Capital Cities</option>
+                        <option value="major">Only Major Cities</option>
                         <option value="all">Capitals & Major Cities</option>
                     </select>
                 </div>
@@ -81,6 +82,7 @@
                         <option value="english" selected>English Translation</option>
                         <option value="original">Original Language</option>
                     </select>
+                    <p style="font-size: 0.85em; color: #666; margin-top: 8px;">Note: This changes the city name shown above the map. Map labels are from the map provider.</p>
                 </div>
             </div>
 

@@ -200,7 +200,10 @@ function getCitiesForGame(continent, cityType, language) {
     let cities;
     if (cityType === 'capitals') {
         cities = [...continentData.capitals];
+    } else if (cityType === 'major') {
+        cities = [...continentData.major];
     } else {
+        // 'all' - both capitals and major cities
         cities = [...continentData.capitals, ...continentData.major];
     }
     

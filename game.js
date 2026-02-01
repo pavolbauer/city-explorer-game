@@ -200,31 +200,42 @@ function getMapTileLayer() {
     let tileUrl, options;
     
     if (gameState.mapType === 'satellite') {
-        // Satellite imagery
-        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        options = {
-            attribution: 'Tiles &copy; Esri',
-            maxZoom: 18
-        };
+        // Satellite imagery - no labels
+        if (gameState.difficulty === 'hard' || gameState.difficulty === 'medium') {
+            // Pure satellite without any labels
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+            options = {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 18
+            };
+        } else {
+            // Satellite with some reference labels for easy mode
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+            options = {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 18
+            };
+        }
     } else {
         // Standard map based on difficulty
         if (gameState.difficulty === 'hard') {
-            // Terrain only, no labels
-            tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+            // Terrain only, absolutely no labels - use natural earth tiles
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}';
             options = {
-                attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap',
-                maxZoom: 17
+                attribution: 'Tiles &copy; Esri &mdash; National Geographic',
+                maxZoom: 16,
+                opacity: 1
             };
         } else if (gameState.difficulty === 'medium') {
-            // Standard map but we'll hide country names with CSS overlay
-            tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            // Show geography but minimal labels - use terrain without city labels
+            tileUrl = 'https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg';
             options = {
-                attribution: '&copy; OpenStreetMap contributors',
-                maxZoom: 19,
-                className: 'medium-difficulty-map'
+                attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>',
+                subdomains: 'abcd',
+                maxZoom: 18
             };
         } else {
-            // Easy - full detailed map
+            // Easy - full detailed map with all labels
             tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
             options = {
                 attribution: '&copy; OpenStreetMap contributors',
