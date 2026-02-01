@@ -15,7 +15,9 @@ let gameState = {
     map: null,
     guessMarker: null,
     cityMarker: null,
-    lineMarker: null
+    lineMarker: null,
+    countryBordersLayer: null,
+    countryLabelsLayer: null
 };
 
 // DOM Elements
@@ -185,6 +187,11 @@ function initializeGameScreen() {
     const tileLayer = getMapTileLayer();
     tileLayer.addTo(gameState.map);
     
+    // Add country borders and labels for medium difficulty
+    if (gameState.difficulty === 'medium' && gameState.mapType === 'standard') {
+        addCountryBordersAndLabels();
+    }
+    
     // Set up scoreboard
     updateScoreboard();
     
@@ -197,56 +204,35 @@ function initializeGameScreen() {
 }
 
 function getMapTileLayer() {
-    let layers = [];
-    
     if (gameState.mapType === 'satellite') {
         // Satellite imagery - no labels
-        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
             maxZoom: 18
         });
-        layers.push(satelliteLayer);
     } else {
         // Standard map based on difficulty
         if (gameState.difficulty === 'hard') {
             // Hard: Only terrain and water, no borders or labels
-            const hardLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
+            return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri',
                 maxZoom: 8
             });
-            layers.push(hardLayer);
         } else if (gameState.difficulty === 'medium') {
-            // Medium: Terrain with country borders only
-            // Use CartoDB Positron which has cleaner, simpler labeling
-            const mediumLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+            // Medium: Geographic base map with no labels at all
+            return L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors, &copy; CARTO',
                 subdomains: 'abcd',
                 maxZoom: 18
             });
-            layers.push(mediumLayer);
-            
-            // Add only country labels (appears mostly at lower zoom levels)
-            const countryLabelsOnly = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
-                attribution: '',
-                subdomains: 'abcd',
-                maxZoom: 18,
-                minZoom: 3,  // Only show at zoom level 3-6 to avoid city labels
-                maxNativeZoom: 6,  // Don't scale up beyond zoom 6
-                className: 'medium-labels'
-            });
-            layers.push(countryLabelsOnly);
         } else {
             // Easy - full detailed map with all labels
-            const easyLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors',
                 maxZoom: 19
             });
-            layers.push(easyLayer);
         }
     }
-    
-    // Return layer group if multiple layers, otherwise single layer
-    return layers.length > 1 ? L.layerGroup(layers) : layers[0];
 }
 
 function getContinentBounds(continent) {
@@ -261,6 +247,101 @@ function getContinentBounds(continent) {
     };
     
     return bounds[continent] || [[- 90, -180], [90, 180]];
+}
+
+function addCountryBordersAndLabels() {
+    // Remove existing layers if any
+    if (gameState.countryBordersLayer) {
+        gameState.map.removeLayer(gameState.countryBordersLayer);
+    }
+    if (gameState.countryLabelsLayer) {
+        gameState.map.removeLayer(gameState.countryLabelsLayer);
+    }
+    
+    // Fetch GeoJSON data for countries
+    fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+        .then(response => response.json())
+        .then(data => {
+            // Add country borders
+            gameState.countryBordersLayer = L.geoJSON(data, {
+                style: {
+                    color: '#666',
+                    weight: 2,
+                    opacity: 0.6,
+                    fillOpacity: 0
+                }
+            }).addTo(gameState.map);
+            
+            // Add country labels at geometric center
+            gameState.countryLabelsLayer = L.layerGroup();
+            
+            data.features.forEach(feature => {
+                const countryName = feature.properties.ADMIN || feature.properties.NAME;
+                
+                // Calculate centroid of the country
+                let centroid;
+                if (feature.geometry.type === 'Polygon') {
+                    centroid = getPolygonCentroid(feature.geometry.coordinates[0]);
+                } else if (feature.geometry.type === 'MultiPolygon') {
+                    // For MultiPolygon, use the largest polygon
+                    let largestPolygon = feature.geometry.coordinates[0];
+                    let largestArea = 0;
+                    
+                    feature.geometry.coordinates.forEach(polygon => {
+                        const area = calculatePolygonArea(polygon[0]);
+                        if (area > largestArea) {
+                            largestArea = area;
+                            largestPolygon = polygon;
+                        }
+                    });
+                    
+                    centroid = getPolygonCentroid(largestPolygon[0]);
+                }
+                
+                if (centroid) {
+                    // Create a custom div icon for the label
+                    const label = L.marker([centroid[1], centroid[0]], {
+                        icon: L.divIcon({
+                            className: 'country-label',
+                            html: `<span>${countryName}</span>`,
+                            iconSize: null
+                        })
+                    });
+                    
+                    gameState.countryLabelsLayer.addLayer(label);
+                }
+            });
+            
+            gameState.countryLabelsLayer.addTo(gameState.map);
+        })
+        .catch(error => {
+            console.error('Error loading country borders:', error);
+        });
+}
+
+function getPolygonCentroid(coordinates) {
+    let x = 0, y = 0;
+    const numPoints = coordinates.length;
+    
+    coordinates.forEach(coord => {
+        x += coord[0];
+        y += coord[1];
+    });
+    
+    return [x / numPoints, y / numPoints];
+}
+
+function calculatePolygonArea(coordinates) {
+    let area = 0;
+    const numPoints = coordinates.length;
+    
+    for (let i = 0; i < numPoints; i++) {
+        const j = (i + 1) % numPoints;
+        area += coordinates[i][0] * coordinates[j][1];
+        area -= coordinates[j][0] * coordinates[i][1];
+    }
+    
+    return Math.abs(area / 2);
 }
 
 function startTurn() {

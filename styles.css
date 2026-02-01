@@ -512,9 +512,27 @@ body {
     }
 }
 
-/* Medium difficulty - hide small text labels (cities) but keep large ones (countries) */
-.medium-labels {
-    filter: contrast(2) brightness(1.2);
+/* Country labels for medium difficulty */
+.country-label {
+    background: transparent;
+    border: none;
+    text-align: center;
+}
+
+.country-label span {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    text-shadow: 
+        -1px -1px 0 #fff,  
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 3px #fff,
+        0 0 5px #fff;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 /* Map markers */
