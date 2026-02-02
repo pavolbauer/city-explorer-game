@@ -258,31 +258,38 @@ function addCountryBordersAndLabels() {
         gameState.map.removeLayer(gameState.countryLabelsLayer);
     }
     
-    // Determine border color based on map type
-    const borderColor = gameState.mapType === 'satellite' ? '#ff3333' : '#666';
-    const borderOpacity = gameState.mapType === 'satellite' ? 0.8 : 0.6;
+    // Use red borders for better visibility on all map types
+    const borderColor = '#ff3333';
+    const borderOpacity = 0.8;
+    
+    // Create layer group for all borders and labels
+    gameState.countryBordersLayer = L.layerGroup().addTo(gameState.map);
+    gameState.countryLabelsLayer = L.layerGroup().addTo(gameState.map);
     
     // Fetch GeoJSON data for countries
     fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
         .then(response => response.json())
         .then(data => {
-            // Add country borders
-            gameState.countryBordersLayer = L.geoJSON(data, {
-                style: {
-                    color: borderColor,
-                    weight: 2,
-                    opacity: borderOpacity,
-                    fillOpacity: 0
-                }
-            }).addTo(gameState.map);
-            
-            // Add country labels at geometric center
-            gameState.countryLabelsLayer = L.layerGroup();
-            
+            // Add country borders (excluding USA which will be replaced by states)
             data.features.forEach(feature => {
                 const countryName = feature.properties.name;
                 
-                // Calculate centroid of the country
+                // Skip USA - we'll add states instead
+                if (countryName === 'United States of America') {
+                    return;
+                }
+                
+                const countryBorder = L.geoJSON(feature, {
+                    style: {
+                        color: borderColor,
+                        weight: 2,
+                        opacity: borderOpacity,
+                        fillOpacity: 0
+                    }
+                });
+                gameState.countryBordersLayer.addLayer(countryBorder);
+                
+                // Calculate centroid and add label
                 let centroid;
                 if (feature.geometry.type === 'Polygon') {
                     centroid = getPolygonCentroid(feature.geometry.coordinates[0]);
@@ -303,24 +310,80 @@ function addCountryBordersAndLabels() {
                 }
                 
                 if (centroid) {
-                    // Create a custom div icon for the label
-                    const labelClass = gameState.mapType === 'satellite' ? 'country-label-satellite' : 'country-label';
                     const label = L.marker([centroid[1], centroid[0]], {
                         icon: L.divIcon({
-                            className: labelClass,
+                            className: 'country-label-red',
                             html: `<span>${countryName}</span>`,
                             iconSize: null
                         })
                     });
-                    
                     gameState.countryLabelsLayer.addLayer(label);
                 }
             });
             
-            gameState.countryLabelsLayer.addTo(gameState.map);
+            // Now add US states
+            addUSStates();
         })
         .catch(error => {
             console.error('Error loading country borders:', error);
+        });
+}
+
+function addUSStates() {
+    // Fetch US states GeoJSON
+    fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+        .then(response => response.json())
+        .then(data => {
+            const borderColor = '#ff3333';
+            const borderOpacity = 0.8;
+            
+            data.features.forEach(feature => {
+                const stateName = feature.properties.name;
+                
+                // Add state border
+                const stateBorder = L.geoJSON(feature, {
+                    style: {
+                        color: borderColor,
+                        weight: 2,
+                        opacity: borderOpacity,
+                        fillOpacity: 0
+                    }
+                });
+                gameState.countryBordersLayer.addLayer(stateBorder);
+                
+                // Calculate centroid and add label
+                let centroid;
+                if (feature.geometry.type === 'Polygon') {
+                    centroid = getPolygonCentroid(feature.geometry.coordinates[0]);
+                } else if (feature.geometry.type === 'MultiPolygon') {
+                    let largestPolygon = feature.geometry.coordinates[0];
+                    let largestArea = 0;
+                    
+                    feature.geometry.coordinates.forEach(polygon => {
+                        const area = calculatePolygonArea(polygon[0]);
+                        if (area > largestArea) {
+                            largestArea = area;
+                            largestPolygon = polygon;
+                        }
+                    });
+                    
+                    centroid = getPolygonCentroid(largestPolygon[0]);
+                }
+                
+                if (centroid) {
+                    const label = L.marker([centroid[1], centroid[0]], {
+                        icon: L.divIcon({
+                            className: 'country-label-red',
+                            html: `<span>${stateName}</span>`,
+                            iconSize: null
+                        })
+                    });
+                    gameState.countryLabelsLayer.addLayer(label);
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading US states:', error);
         });
 }
 
