@@ -213,10 +213,11 @@ function getMapTileLayer() {
     } else {
         // Standard map based on difficulty
         if (gameState.difficulty === 'hard') {
-            // Hard: Only terrain and water, no borders or labels
-            return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Tiles &copy; Esri',
-                maxZoom: 8
+            // Hard: Same geographic base map as medium but without any overlays
+            return L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors, &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 18
             });
         } else if (gameState.difficulty === 'medium') {
             // Medium: Geographic base map with no labels at all
