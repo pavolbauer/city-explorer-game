@@ -226,9 +226,11 @@ function getMapTileLayer() {
                 maxZoom: 18
             });
         } else {
-            // Easy - full detailed map with all labels
-            return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors',
+            // Easy - full detailed map with English labels
+            // Using CartoDB Voyager which has English labels and good detail
+            return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors, &copy; CARTO',
+                subdomains: 'abcd',
                 maxZoom: 19
             });
         }
